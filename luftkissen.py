@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Luftkissentisch
 
@@ -25,10 +25,10 @@ device = "kugelstoss.log"
 
 if (platform.machine() == "x86_64"):
   bstr = struct.Struct("I 4x I 4x 2H i")
-  print "64 bit architecture"
+  print("64 bit architecture")
 else:
   bstr = struct.Struct("I I 2H i")
-  print "32 bit architecture"
+  print("32 bit architecture")
 
 
 #define some colors
@@ -89,6 +89,10 @@ def main():
 
   #define font
   FONT = pygame.font.Font(None, 25)
+  
+  #TODO: following lable is definde two times
+  label_File = FONT.render("Datei", 1, black)
+  
   #Background Screen
   pygame.draw.rect(DISPLAY, grey , Scrn)
   #drawing area Canvas
@@ -123,7 +127,8 @@ def main():
           datfile = newfile("sg*.dat")
           pygame.draw.rect(DISPLAY, cyan , Btn1)
           labelfile = FONT.render (datfile, 1, blue)
-          DISPLAY.blit(label1, (Btnx[1], Btny[1]))
+          #TODO: label_File is defined later!
+          DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
           DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+30))
           run = 0
           pygame.display.update()
@@ -170,7 +175,7 @@ def main():
           # lfd. Nr anzeigen, Koordinaten abspeichern
           state_color2 = cyan
           pygame.display.update()
-          print "Positionen",len(x1lst),len(x2lst)
+          print("Positionen",len(x1lst),len(x2lst))
         elif Btn3.collidepoint(pos):
           pygame.draw.rect(DISPLAY, red , Btn3)
           pygame.display.update()
@@ -270,9 +275,10 @@ def main():
       pygame.draw.rect(DISPLAY, state_color4 , Btn6)
       pygame.draw.rect(DISPLAY, red , Btn7)
      
-      label1 = FONT.render ("Datei", 1, black)
-      label2 = FONT.render ("Start", 1, black)
-      label3 = FONT.render ("Speichern", 1, black)
+      label_File = FONT.render ("File", 1, black)
+      label_Start = FONT.render ("Start", 1, black)
+      label_Save = FONT.render ("Save", 1, black)
+        
 #      labelp = FONT.render ("Plot", 1, black)
       labelxy = FONT.render ("x(t), y(t)", 1, black)
       labels = FONT.render ("s(t)", 1, black)
@@ -280,10 +286,10 @@ def main():
       labelquit = FONT.render ("Quit", 1, white)
       labelfile = FONT.render (datfile, 1, blue)
       
-      DISPLAY.blit(label1, (Btnx[1], Btny[1]))
+      DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
       DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+20))
-      DISPLAY.blit(label2, (Btnx[2], Btny[2]))
-      DISPLAY.blit(label3, (Btnx[3], Btny[3]))
+      DISPLAY.blit(label_Start, (Btnx[2], Btny[2]))
+      DISPLAY.blit(label_Save, (Btnx[3], Btny[3]))
 #      DISPLAY.blit(labelp, (Btnx[4], Btny[4]-20))
       DISPLAY.blit(labelxy,(Btnx[4], Btny[4]))
       DISPLAY.blit(labels, (Btnx[5], Btny[5]))
