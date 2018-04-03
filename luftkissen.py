@@ -90,7 +90,7 @@ def main():
   #define font
   FONT = pygame.font.Font(None, 25)
   
-  #TODO: following lable is definde two times
+  #TODO: Define Labels
   label_File = FONT.render("Datei", 1, black)
   
   #Background Screen
@@ -275,7 +275,7 @@ def main():
       pygame.draw.rect(DISPLAY, state_color4 , Btn6)
       pygame.draw.rect(DISPLAY, red , Btn7)
      
-      label_File = FONT.render ("File", 1, black)
+#     label_File = FONT.render ("File", 1, black)
       label_Start = FONT.render ("Start", 1, black)
       label_Save = FONT.render ("Save", 1, black)
         
