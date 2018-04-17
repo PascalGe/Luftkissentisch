@@ -69,13 +69,13 @@ def main():
     DISPLAY = pygame.display.set_mode(size)
     Scrn = pygame.Rect(Btnx[0],0,width,height)
     Cnvs = pygame.Rect(BtnXlen+25, 5, height-10,  height-10)
-    Btn1 = pygame.Rect(Btnx[1],Btny[1], BtnXlen,BtnYlen)
-    Btn2 = pygame.Rect(Btnx[2],Btny[2], BtnXlen,BtnYlen)
-    Btn3 = pygame.Rect(Btnx[3],Btny[3], BtnXlen,BtnYlen)
-    Btn4 = pygame.Rect(Btnx[4],Btny[4], BtnXlen,BtnYlen)
-    Btn5 = pygame.Rect(Btnx[5],Btny[5], BtnXlen,BtnYlen)
-    Btn6 = pygame.Rect(Btnx[6],Btny[6], BtnXlen,BtnYlen)
-    Btn7 = pygame.Rect(Btnx[7],Btny[7], BtnXlen,BtnYlen)
+    BtnFile = pygame.Rect(Btnx[1],Btny[1], BtnXlen,BtnYlen)
+    BtnStart = pygame.Rect(Btnx[2],Btny[2], BtnXlen,BtnYlen)
+    BtnSave = pygame.Rect(Btnx[3],Btny[3], BtnXlen,BtnYlen)
+    BtnXY = pygame.Rect(Btnx[4],Btny[4], BtnXlen,BtnYlen)
+    BtnS = pygame.Rect(Btnx[5],Btny[5], BtnXlen,BtnYlen)
+    BtnV = pygame.Rect(Btnx[6],Btny[6], BtnXlen,BtnYlen)
+    BtnQuit = pygame.Rect(Btnx[7],Btny[7], BtnXlen,BtnYlen)
 
 
     #initial state colors for indicators
@@ -121,21 +121,24 @@ def main():
                 #get position
                 pos = pygame.mouse.get_pos()
                 state_color1 = state_color2 = state_color3 =cyan
-                if Btn1.collidepoint(pos):
-                    pygame.draw.rect(DISPLAY, red , Btn1)
+                if BtnFile.collidepoint(pos):
+                    # Create new file
+                    pygame.draw.rect(DISPLAY, red , BtnFile)
                     pygame.display.update()
                     datfile = newfile("sg*.dat")
-                    pygame.draw.rect(DISPLAY, cyan , Btn1)
+                    pygame.draw.rect(DISPLAY, cyan , BtnFile)
                     labelfile = FONT.render (datfile, 1, blue)
                     #TODO: label_File is defined later!
                     DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
                     DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+30))
                     run = 0
                     pygame.display.update()
-                elif Btn2.collidepoint(pos):
+                elif BtnStart.collidepoint(pos):
+                    # Start measurement
                     run += 1
+                    pygame.draw.rect(DISPLAY, grey, Scrn)
                     pygame.draw.rect(DISPLAY, black, Cnvs)
-                    pygame.draw.rect(DISPLAY, green, Btn2)
+                    pygame.draw.rect(DISPLAY, green, BtnStart)
                     x1lst = []
                     y1lst = []
                     t1lst = []
@@ -176,8 +179,9 @@ def main():
                     state_color2 = cyan
                     pygame.display.update()
                     print("Positionen",len(x1lst),len(x2lst))
-                elif Btn3.collidepoint(pos):
-                    pygame.draw.rect(DISPLAY, red , Btn3)
+                elif BtnSave.collidepoint(pos):
+                    # Save measurement
+                    pygame.draw.rect(DISPLAY, red , BtnSave)
                     pygame.display.update()
                     fd = open(datfile,"a")
                     for i in range(len(x1lst)):
@@ -187,9 +191,10 @@ def main():
                         z = '%4i%4i%9.6f%6.1f%6.1f\n' % (run,1,t2lst[i],x2lst[i],y2lst[i])
                         fd.write(z)
                     fd.close()
-                    pygame.draw.rect(DISPLAY, state_color3 , Btn3)
+                    pygame.draw.rect(DISPLAY, state_color3 , BtnSave)
                     pygame.display.update()
-                elif Btn4.collidepoint(pos):
+                elif BtnXY.collidepoint(pos):
+                    # Show positions
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     plt.plot(t1lst,x1lst,'.',label='x1(t)')
                     plt.plot(t1lst,y1lst,'.',label='y1(t)')
@@ -208,7 +213,8 @@ def main():
                     DISPLAY.blit(surf, (BtnXlen+10,0))
                     pygame.display.flip()
 
-                elif Btn5.collidepoint(pos):
+                elif BtnS.collidepoint(pos):
+                    # Show s
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     sl1 = [0]
                     for i in range(len(x1lst)-1):
@@ -231,7 +237,8 @@ def main():
                     surf = pygame.image.fromstring(raw_data, size, "RGB")
                     DISPLAY.blit(surf, (BtnXlen+10,0))
                     pygame.display.flip()
-                elif Btn6.collidepoint(pos):
+                elif BtnV.collidepoint(pos):
+                    # Show velocity
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     tl1 = []
                     vl1 = []
@@ -261,19 +268,20 @@ def main():
                     surf = pygame.image.fromstring(raw_data, size, "RGB")
                     DISPLAY.blit(surf, (BtnXlen+10,0))
                     pygame.display.flip()
-                elif Btn7.collidepoint(pos):
+                elif BtnQuit.collidepoint(pos):
+                    # Close frame
                     pygame.quit()
                     sys.exit()
 
     #lets draw the buttons and indicators
       
-            pygame.draw.rect(DISPLAY, state_color1 , Btn1)
-            pygame.draw.rect(DISPLAY, state_color2 , Btn2)
-            pygame.draw.rect(DISPLAY, state_color3 , Btn3)
-            pygame.draw.rect(DISPLAY, state_color4 , Btn4)
-            pygame.draw.rect(DISPLAY, state_color4 , Btn5)
-            pygame.draw.rect(DISPLAY, state_color4 , Btn6)
-            pygame.draw.rect(DISPLAY, red , Btn7)
+            pygame.draw.rect(DISPLAY, state_color1 , BtnFile)
+            pygame.draw.rect(DISPLAY, state_color2 , BtnStart)
+            pygame.draw.rect(DISPLAY, state_color3 , BtnSave)
+            pygame.draw.rect(DISPLAY, state_color4 , BtnXY)
+            pygame.draw.rect(DISPLAY, state_color4 , BtnS)
+            pygame.draw.rect(DISPLAY, state_color4 , BtnV)
+            pygame.draw.rect(DISPLAY, red , BtnQuit)
      
 #             label_File = FONT.render ("File", 1, black)
             label_Start = FONT.render ("Start", 1, black)
