@@ -22,8 +22,9 @@ import matplotlib.pyplot as plt
 device = "kugelstoss.log"
 # device = "/dev/input/by-id/usb-Multi_touch_Multi_touch_overlay_device_6F66FA721233-event-if01"
 
-
-if (platform.machine() == "x86_64"):
+# pocessor architecture
+# if (platform.machine() == "x86_64" or platform.machine() == "AMD64"):
+if (platform.architecture() == "64bit"):
     bstr = struct.Struct("I 4x I 4x 2H i")
     print("64 bit architecture")
 else:
@@ -90,8 +91,7 @@ def main():
     #define font
     FONT = pygame.font.Font(None, 25)
   
-    #TODO: Define Labels here
-    label_File = FONT.render("Datei", 1, black)
+    label_File = FONT.render("File", 1, black)
   
     #Background Screen
     pygame.draw.rect(DISPLAY, grey , Scrn)
@@ -128,7 +128,6 @@ def main():
                     datfile = newfile("sg*.dat")
                     pygame.draw.rect(DISPLAY, cyan , BtnFile)
                     labelfile = FONT.render (datfile, 1, blue)
-                    #TODO: label_File is defined later!
                     DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
                     DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+30))
                     run = 0
@@ -326,6 +325,7 @@ def kugelpos():
 #  54 0x36 => "pos_y",
 #  57 0x39 => "tracking_id",
 # 330 0x14a => "btn_touch");
+# mtk multitouchkey
     time = 0
     slot = 0
     x1 = 0
