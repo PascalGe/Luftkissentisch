@@ -24,7 +24,7 @@ device = "kugelstoss.log"
 
 # pocessor architecture
 # if (platform.machine() == "x86_64" or platform.machine() == "AMD64"):
-if (platform.architecture() == "64bit"):
+if (platform.architecture()[0] == "64bit"):
     bstr = struct.Struct("I 4x I 4x 2H i")
     print("64 bit architecture")
 else:
