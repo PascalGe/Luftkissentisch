@@ -14,6 +14,7 @@ import platform
 import math
 from math import sqrt
 import matplotlib
+from pygame import display
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
@@ -102,9 +103,18 @@ def main():
     #handler.loadFromFile ( "./BtnNorm.png", "Btn" )
     #handler.loadFromFile ( "./BtnPressed.png", "Btn" )
     devopen()
-    frame = open(device,"rb")              
+    frame = open(device,"rb")
+    
+    #define data container
+    global dispList1, dispList2, calcList1, calcList2
+    dispList1 = []
+    dispList2 = []
+    calcList1 = []
+    calcList2 = []
+    
 
     running = True
+    lock = False
   
     while running:
         for event in pygame.event.get():
@@ -161,24 +171,29 @@ def main():
                         x2d = int(BtnXlen+25+480./32768*x2)
                         y2d = int(480./32768*y2)
 #                         print "Pos: ",atime,x1,y1,x2,y2,x1d,y1d,x2d,y2d
+                        # TODO: Just take points that are not close to the border
                         if (x1>0 and y1>0): 
                             pygame.draw.circle(DISPLAY, blue, (x1d, y1d), 2)
                             pygame.display.update()
                             x1lst.append(x1*fmm)
                             y1lst.append(y1*fmm)
                             t1lst.append(1e-6*atime)
+                            dispList1.append((x1d, y1d))
                         if (x2>0 and y2>0): 
                             pygame.draw.circle(DISPLAY, red, (x2d, y2d), 2)
                             pygame.display.update()
                             x2lst.append(x2*fmm)
                             y2lst.append(y2*fmm)
                             t2lst.append(1e-6*atime)
+                            dispList2.append((x2d, y2d))
                     # hier geht es dann weiter: Koordinaten anzeigen, evtl. ok Button
                     # lfd. Nr anzeigen, Koordinaten abspeichern
                     state_color2 = cyan
                     pygame.display.update()
                     print("Positionen",len(x1lst),len(x2lst))
                 elif BtnSave.collidepoint(pos):
+                    if run == 0:
+                        break
                     # Save measurement
                     pygame.draw.rect(DISPLAY, red , BtnSave)
                     pygame.display.update()
@@ -193,6 +208,8 @@ def main():
                     pygame.draw.rect(DISPLAY, state_color3 , BtnSave)
                     pygame.display.update()
                 elif BtnXY.collidepoint(pos):
+                    if run == 0:
+                        break
                     # Show positions
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     plt.plot(t1lst,x1lst,'.',label='x1(t)')
@@ -213,6 +230,8 @@ def main():
                     pygame.display.flip()
 
                 elif BtnS.collidepoint(pos):
+                    if run == 0:
+                        break
                     # Show s
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     sl1 = [0]
@@ -237,6 +256,8 @@ def main():
                     DISPLAY.blit(surf, (BtnXlen+10,0))
                     pygame.display.flip()
                 elif BtnV.collidepoint(pos):
+                    if run == 0:
+                        break
                     # Show velocity
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     tl1 = []
@@ -271,9 +292,28 @@ def main():
                     # Close frame
                     pygame.quit()
                     sys.exit()
-
+                elif Cnvs.collidepoint(pos):
+                    # Mark points on Cnvs
+                    print("Cnvs", pos)
+                    lock = True
+                    #TODO: Check first point? (for toggle) -- maybe better by first hovering
+            if event.type == pygame.MOUSEBUTTONUP:
+                lock = False
+            if event.type == pygame.MOUSEMOTION:
+                if not lock:
+                    break
+                pos = pygame.mouse.get_pos()
+#                 print(pos[0])
+                for i in range(len(dispList1)):
+#                     print(i)
+                    if (dispList1[i][0]-2) < (pos[0]) and (dispList1[i][0]+2) > (pos[0]):
+                        if (dispList1[i][1]-2) < (pos[1]) and (dispList1[i][1]+2) > (pos[1]):
+                            print("check at ball index", i)
+                            #TODO: Check for highlighting (Toggle)
+                            pygame.draw.circle(DISPLAY, yellow, dispList1[i], 2)
+                            break
     #lets draw the buttons and indicators
-      
+    
             pygame.draw.rect(DISPLAY, state_color1 , BtnFile)
             pygame.draw.rect(DISPLAY, state_color2 , BtnStart)
             pygame.draw.rect(DISPLAY, state_color3 , BtnSave)
