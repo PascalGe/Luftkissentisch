@@ -15,6 +15,7 @@ import math
 from math import sqrt
 import matplotlib
 from pygame import display
+from _operator import pos
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
@@ -115,6 +116,7 @@ def main():
 
     running = True
     lock = False
+    selecting = True
   
     while running:
         for event in pygame.event.get():
@@ -178,14 +180,14 @@ def main():
                             x1lst.append(x1*fmm)
                             y1lst.append(y1*fmm)
                             t1lst.append(1e-6*atime)
-                            dispList1.append((x1d, y1d))
+                            dispList1.append((x1d, y1d, False))
                         if (x2>0 and y2>0): 
                             pygame.draw.circle(DISPLAY, red, (x2d, y2d), 2)
                             pygame.display.update()
                             x2lst.append(x2*fmm)
                             y2lst.append(y2*fmm)
                             t2lst.append(1e-6*atime)
-                            dispList2.append((x2d, y2d))
+                            dispList2.append((x2d, y2d, False))
                     # hier geht es dann weiter: Koordinaten anzeigen, evtl. ok Button
                     # lfd. Nr anzeigen, Koordinaten abspeichern
                     state_color2 = cyan
@@ -297,21 +299,25 @@ def main():
                     print("Cnvs", pos)
                     lock = True
                     #TODO: Check first point? (for toggle) -- maybe better by first hovering
+                    collisionAt = getCollitionIndex(dispList1, pos, True)
+                    if not collisionAt == []:
+                        print("List 1 hit")
+                        selecting = not dispList1[collisionAt][2]
+                        break
+                    collisionAt = getCollitionIndex(dispList2, pos, True)
+                    if not collisionAt == []:
+                        print("List 2 hit")
+                        selecting = not dispList2[collisionAt][2]
             if event.type == pygame.MOUSEBUTTONUP:
                 lock = False
+                selecting = True
             if event.type == pygame.MOUSEMOTION:
                 if not lock:
                     break
                 pos = pygame.mouse.get_pos()
-#                 print(pos[0])
-                for i in range(len(dispList1)):
-#                     print(i)
-                    if (dispList1[i][0]-2) < (pos[0]) and (dispList1[i][0]+2) > (pos[0]):
-                        if (dispList1[i][1]-2) < (pos[1]) and (dispList1[i][1]+2) > (pos[1]):
-                            print("check at ball index", i)
-                            #TODO: Check for highlighting (Toggle)
-                            pygame.draw.circle(DISPLAY, yellow, dispList1[i], 2)
-                            break
+                markPositions(dispList1, pos, (blue, yellow), selecting)
+                markPositions(dispList2, pos, (red, green), selecting)
+                
     #lets draw the buttons and indicators
     
             pygame.draw.rect(DISPLAY, state_color1 , BtnFile)
@@ -412,6 +418,36 @@ def newfile(path):
         nr="00001"
     nextfile = "sg"+nr+".dat"
     return nextfile
+
+def markPositions(posList, mousePos, colors, selectingFlag):
+    # Highlights the selected positions and changes the selection values for those positions to True.
+    color = colors[0]
+    if selectingFlag:
+        color = colors[1]
+    indexes = getCollitionIndex(posList, mousePos, False)
+    for i in indexes:
+        posList[i] = (posList[i][0], posList[i][1], selectingFlag)
+        pygame.draw.circle(DISPLAY, color, (posList[i][0], posList[i][1]), 2)
+    return
+
+def getCollitionIndex(posList, mousePos, getOnlyOne):
+    # Returns the index of posList that matches with the mouse position.
+    #
+    # posList = List of the balls position
+    # mousePos = Position of the mouse
+    # getOnlyOne = True if you only want the first index that matches
+    
+    collisionTol = 5
+    
+    indexes = []
+    for i in range(len(posList)):
+                    if (posList[i][0]-collisionTol) < (mousePos[0]) and (posList[i][0]+collisionTol) > (mousePos[0]):
+                        if (posList[i][1]-collisionTol) < (mousePos[1]) and (posList[i][1]+collisionTol) > (mousePos[1]):
+                            print("check at ball index", i)
+                            if getOnlyOne:
+                                return i
+                            indexes.append(i)
+    return indexes
 
 if __name__ == '__main__':
     main()                
