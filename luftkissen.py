@@ -14,8 +14,6 @@ import platform
 import math
 from math import sqrt
 import matplotlib
-from pygame import display
-from _operator import pos
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
