@@ -433,7 +433,7 @@ def getCollitionIndex(posList, mousePos, getOnlyOne):
     #
     # posList = List of the balls position
     # mousePos = Position of the mouse
-    # getOnlyOne = True if you only want the first index that matches
+    # getOnlyOne = True if you only want the average index that matches
     
     collisionTol = 5
     
@@ -445,6 +445,12 @@ def getCollitionIndex(posList, mousePos, getOnlyOne):
                             if getOnlyOne:
                                 return i
                             indexes.append(i)
+#     if getOnlyOne:
+#         index = 0
+#         n = len(indexes)
+#         for i in range(n):
+#             index += i
+#         return math.trunc(index/n)
     return indexes
 
 if __name__ == '__main__':
