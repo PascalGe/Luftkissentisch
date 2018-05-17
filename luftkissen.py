@@ -442,15 +442,16 @@ def getCollitionIndex(posList, mousePos, getOnlyOne):
                     if (posList[i][0]-collisionTol) < (mousePos[0]) and (posList[i][0]+collisionTol) > (mousePos[0]):
                         if (posList[i][1]-collisionTol) < (mousePos[1]) and (posList[i][1]+collisionTol) > (mousePos[1]):
                             print("check at ball index", i)
-                            if getOnlyOne:
-                                return i
+#                             if getOnlyOne:
+#                                 return i
                             indexes.append(i)
-#     if getOnlyOne:
-#         index = 0
-#         n = len(indexes)
-#         for i in range(n):
-#             index += i
-#         return math.trunc(index/n)
+    if not indexes == [] and getOnlyOne:
+        index = 0
+        n = len(indexes)
+        for i in range(n):
+            index += indexes[i]
+        print("average", math.trunc(index/n))
+        return math.trunc(index/n)
     return indexes
 
 if __name__ == '__main__':
