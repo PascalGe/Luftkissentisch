@@ -17,6 +17,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
+import scipy
+from scipy import optimize
+# from scipy.optimize import minimize
 
 # define input file
 device = "kugelstoss.log"
@@ -171,15 +174,15 @@ def main():
                         x2d = int(BtnXlen+25+480./32768*x2)
                         y2d = int(480./32768*y2)
 #                         print "Pos: ",atime,x1,y1,x2,y2,x1d,y1d,x2d,y2d
-                        # TODO: Just take points that are not close to the border
-                        if (x1>0 and y1>0): 
+                        # TODO: Select relevant or deselect irrelevant
+                        if (x1>1000 and y1>1000 and x1<32000 and y2<32000): 
                             pygame.draw.circle(DISPLAY, blue, (x1d, y1d), 2)
                             pygame.display.update()
                             x1lst.append(x1*fmm)
                             y1lst.append(y1*fmm)
                             t1lst.append(1e-6*atime)
                             dispList1.append((x1d, y1d, False))
-                        if (x2>0 and y2>0): 
+                        if (x2>1000 and y2>1000 and x2<32000 and y2<32000): 
                             pygame.draw.circle(DISPLAY, red, (x2d, y2d), 2)
                             pygame.display.update()
                             x2lst.append(x2*fmm)
@@ -296,7 +299,6 @@ def main():
                     # Mark points on Cnvs
                     print("Cnvs", pos)
                     lock = True
-                    #TODO: Check first point? (for toggle) -- maybe better by first hovering
                     collisionAt = getCollitionIndex(dispList1, pos, True)
                     if not collisionAt == []:
                         print("List 1 hit")
@@ -316,6 +318,8 @@ def main():
                 markPositions(dispList1, pos, (blue, yellow), selecting)
                 markPositions(dispList2, pos, (red, green), selecting)
                 
+                #TODO: Check slots for different directions
+                #TODO: Fits (both slots, before and after)
     #lets draw the buttons and indicators
     
             pygame.draw.rect(DISPLAY, state_color1 , BtnFile)
@@ -418,7 +422,9 @@ def newfile(path):
     return nextfile
 
 def markPositions(posList, mousePos, colors, selectingFlag):
-    # Highlights the selected positions and changes the selection values for those positions to True.
+    """Highlights the selected positions and changes the selection values for those positions to True.
+    """
+    
     color = colors[0]
     if selectingFlag:
         color = colors[1]
@@ -429,14 +435,18 @@ def markPositions(posList, mousePos, colors, selectingFlag):
     return
 
 def getCollitionIndex(posList, mousePos, getOnlyOne):
-    # Returns the index of posList that matches with the mouse position.
-    #
-    # posList = List of the balls position
-    # mousePos = Position of the mouse
-    # getOnlyOne = True if you only want the average index that matches
+    """
+    Returns the index of posList that matches with the mouse position.
+    
+    
+    posList = List of the balls position
+    
+    mousePos = Position of the mouse
+    
+    getOnlyOne = True if you only want the average index that matches
+    """
     
     collisionTol = 5
-    
     indexes = []
     for i in range(len(posList)):
                     if (posList[i][0]-collisionTol) < (mousePos[0]) and (posList[i][0]+collisionTol) > (mousePos[0]):
@@ -453,6 +463,19 @@ def getCollitionIndex(posList, mousePos, getOnlyOne):
         print("average", math.trunc(index/n))
         return math.trunc(index/n)
     return indexes
+
+def getLineOfBestFit(points):
+    xsum = 0
+    xsq = 0
+    ysum = 0
+    ysq = 0
+    for i in range(len(points)):
+        xsum += points[i][0]
+        xsq += (points[i][0])^2
+        ysum += points[i][1]
+        ysq += (points[i][1])^2
+    fun = lambda x: xsq*math.cos(x[0])^2 + ysq*math.sin(x[0])-x[1]^2 + 2(xsum*ysum*math.cos(x[0])*math.sin(x[0]) - x[1]*(xsum*math.cos(x[0]) + ysum*math.sin([0])))
+    return optimize.minimize(fun, 0)
 
 if __name__ == '__main__':
     main()                
