@@ -17,9 +17,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
-import scipy
-from scipy import optimize
-# from scipy.optimize import minimize
+from scipy.optimize import minimize
 
 # define input file
 device = "kugelstoss.log"
@@ -114,10 +112,19 @@ def main():
     calcList1 = []
     calcList2 = []
     
+    x1lst = [] # x-pos from 1 in mm
+    y1lst = [] # y-pos from 1 in mm 
+    t1lst = [] # t from 1 in s
+    x2lst = [] # x-pos from 2 in mm
+    y2lst = [] # y-pos from 2 in mm
+    t2lst = [] # t from 2 in s
 
     running = True
     lock = False
     selecting = True
+    changed = False
+    isCnvsVisible = True
+    alreadySaved = False
   
     while running:
         for event in pygame.event.get():
@@ -135,6 +142,7 @@ def main():
                 pos = pygame.mouse.get_pos()
                 state_color1 = state_color2 = state_color3 =cyan
                 if BtnFile.collidepoint(pos):
+                    alreadySaved = False
                     # Create new file
                     pygame.draw.rect(DISPLAY, red , BtnFile)
                     pygame.display.update()
@@ -146,17 +154,34 @@ def main():
                     run = 0
                     pygame.display.update()
                 elif BtnStart.collidepoint(pos):
+                    if not isCnvsVisible:
+                        #Switch to current measurement
+                        pygame.draw.rect(DISPLAY, grey, Scrn)
+                        pygame.draw.rect(DISPLAY, black, Cnvs)
+                        for i in range(len(dispList1)):
+                            color = blue
+                            if dispList1[i][2]:
+                                color = cyan
+                            pygame.draw.circle(DISPLAY, color, (dispList1[i][0], dispList1[i][1]), 2)
+                        for i in range(len(dispList2)):
+                            color = red
+                            if dispList2[i][2]:
+                                color = cyan
+                            pygame.draw.circle(DISPLAY, color, (dispList2[i][0], dispList2[i][1]), 2)
+                        isCnvsVisible = True
+                        break;
                     # Start measurement
                     run += 1
+                    alreadySaved = False
                     pygame.draw.rect(DISPLAY, grey, Scrn)
                     pygame.draw.rect(DISPLAY, black, Cnvs)
                     pygame.draw.rect(DISPLAY, green, BtnStart)
-                    x1lst = []
-                    y1lst = []
-                    t1lst = []
-                    x2lst = []
-                    y2lst = []
-                    t2lst = []
+                    x1lst = [] # x-pos from 1 in mm
+                    y1lst = [] # y-pos from 1 in mm 
+                    t1lst = [] # t from 1 in s
+                    x2lst = [] # x-pos from 2 in mm
+                    y2lst = [] # y-pos from 2 in mm
+                    t2lst = [] # t from 2 in s
                     stime =  atime = 0
                     label5 = FONT.render ('Lauf '+str(run), 1, blue)
                     DISPLAY.blit(label5, (Btnx[2], Btny[2]+30))
@@ -195,7 +220,7 @@ def main():
                     pygame.display.update()
                     print("Positionen",len(x1lst),len(x2lst))
                 elif BtnSave.collidepoint(pos):
-                    if run == 0:
+                    if alreadySaved:
                         break
                     # Save measurement
                     pygame.draw.rect(DISPLAY, red , BtnSave)
@@ -205,14 +230,14 @@ def main():
                         z = '%4i%4i%9.6f%6.1f%6.1f\n' % (run,1,t1lst[i],x1lst[i],y1lst[i])
                         fd.write(z)
                     for i in range(len(x2lst)):
-                        z = '%4i%4i%9.6f%6.1f%6.1f\n' % (run,1,t2lst[i],x2lst[i],y2lst[i])
+                        z = '%4i%4i%9.6f%6.1f%6.1f\n' % (run,2,t2lst[i],x2lst[i],y2lst[i])
                         fd.write(z)
                     fd.close()
+                    alreadySaved = True
                     pygame.draw.rect(DISPLAY, state_color3 , BtnSave)
                     pygame.display.update()
                 elif BtnXY.collidepoint(pos):
-                    if run == 0:
-                        break
+                    isCnvsVisible = False
                     # Show positions
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     plt.plot(t1lst,x1lst,'.',label='x1(t)')
@@ -233,8 +258,7 @@ def main():
                     pygame.display.flip()
 
                 elif BtnS.collidepoint(pos):
-                    if run == 0:
-                        break
+                    isCnvsVisible = False
                     # Show s
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     sl1 = [0]
@@ -243,6 +267,8 @@ def main():
                     sl2 = [0]
                     for i in range(len(x2lst)-1):
                         sl2.append(sl2[i]+sqrt((x2lst[i+1]-x2lst[i])**2+(y2lst[i+1]-y2lst[i])**2))
+                    if len(x1lst) == 0 or len(x2lst) == 0:
+                        sl2 = sl1 = []
                     plt.plot(t1lst,sl1,'.',label='s1(t)')
                     plt.plot(t2lst,sl2,'.',label='s2(t)')
                     plt.xlabel('t/s')
@@ -259,8 +285,7 @@ def main():
                     DISPLAY.blit(surf, (BtnXlen+10,0))
                     pygame.display.flip()
                 elif BtnV.collidepoint(pos):
-                    if run == 0:
-                        break
+                    isCnvsVisible = False
                     # Show velocity
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
                     tl1 = []
@@ -296,30 +321,36 @@ def main():
                     pygame.quit()
                     sys.exit()
                 elif Cnvs.collidepoint(pos):
+                    if not isCnvsVisible:
+                        break
                     # Mark points on Cnvs
-                    print("Cnvs", pos)
+#                     print("Cnvs", pos)
                     lock = True
                     collisionAt = getCollitionIndex(dispList1, pos, True)
                     if not collisionAt == []:
-                        print("List 1 hit")
+#                         print("List 1 hit")
                         selecting = not dispList1[collisionAt][2]
                         break
                     collisionAt = getCollitionIndex(dispList2, pos, True)
                     if not collisionAt == []:
-                        print("List 2 hit")
+#                         print("List 2 hit")
                         selecting = not dispList2[collisionAt][2]
             if event.type == pygame.MOUSEBUTTONUP:
+                if not isCnvsVisible:
+                    break
                 lock = False
                 selecting = True
+                if changed:
+                    print("changed")
+                    #TODO: Check selected trajectories for different directions --> Split
+                    #TODO: Fits (both slots, before and after)
+                changed = False
             if event.type == pygame.MOUSEMOTION:
                 if not lock:
                     break
                 pos = pygame.mouse.get_pos()
-                markPositions(dispList1, pos, (blue, yellow), selecting)
-                markPositions(dispList2, pos, (red, green), selecting)
-                
-                #TODO: Check slots for different directions
-                #TODO: Fits (both slots, before and after)
+                changed = markPositions(dispList1, pos, (blue, cyan), selecting) or changed
+                changed = markPositions(dispList2, pos, (red, cyan), selecting) or changed
     #lets draw the buttons and indicators
     
             pygame.draw.rect(DISPLAY, state_color1 , BtnFile)
@@ -424,7 +455,7 @@ def newfile(path):
 def markPositions(posList, mousePos, colors, selectingFlag):
     """Highlights the selected positions and changes the selection values for those positions to True.
     """
-    
+    changed = False
     color = colors[0]
     if selectingFlag:
         color = colors[1]
@@ -432,7 +463,8 @@ def markPositions(posList, mousePos, colors, selectingFlag):
     for i in indexes:
         posList[i] = (posList[i][0], posList[i][1], selectingFlag)
         pygame.draw.circle(DISPLAY, color, (posList[i][0], posList[i][1]), 2)
-    return
+        changed = True
+    return changed
 
 def getCollitionIndex(posList, mousePos, getOnlyOne):
     """
@@ -451,17 +483,19 @@ def getCollitionIndex(posList, mousePos, getOnlyOne):
     for i in range(len(posList)):
                     if (posList[i][0]-collisionTol) < (mousePos[0]) and (posList[i][0]+collisionTol) > (mousePos[0]):
                         if (posList[i][1]-collisionTol) < (mousePos[1]) and (posList[i][1]+collisionTol) > (mousePos[1]):
-                            print("check at ball index", i)
-#                             if getOnlyOne:
-#                                 return i
+#                             print("check at ball index", i)
                             indexes.append(i)
     if not indexes == [] and getOnlyOne:
         index = 0
         n = len(indexes)
         for i in range(n):
             index += indexes[i]
-        print("average", math.trunc(index/n))
-        return math.trunc(index/n)
+        average = math.trunc(index/n)
+#         print("average", average)
+        for i in range(n):
+            if average == indexes[i]:
+                return average
+        return indexes[0]
     return indexes
 
 def getLineOfBestFit(points):
@@ -475,7 +509,7 @@ def getLineOfBestFit(points):
         ysum += points[i][1]
         ysq += (points[i][1])^2
     fun = lambda x: xsq*math.cos(x[0])^2 + ysq*math.sin(x[0])-x[1]^2 + 2(xsum*ysum*math.cos(x[0])*math.sin(x[0]) - x[1]*(xsum*math.cos(x[0]) + ysum*math.sin([0])))
-    return optimize.minimize(fun, 0)
+    return minimize(fun, [0])
 
 if __name__ == '__main__':
     main()                
