@@ -14,6 +14,7 @@ import platform
 import math
 from math import sqrt
 import matplotlib
+import signal
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
@@ -190,7 +191,10 @@ def main():
                     devopen()
                     frame = open(device,"rb")
                     while (atime < 6e6):
-                        (etime,x1,y1,x2,y2) = kugelpos()
+                        try:
+                            (etime,x1,y1,x2,y2) = kugelpos()
+                        except IOError:
+                            break
                         if (etime == 0): break
                         if (stime == 0): stime = etime
                         atime = etime - stime
@@ -412,7 +416,11 @@ def kugelpos():
     y1 = 0
     y2 = 0
     while True:
+        # TODO: In final version remove comment
+#         signal.signal(signal.SIGALRM, handler)
+#         signal.alarm(5)
         buff = frame.read(bstr.size)
+#         signal.alarm(0)
         if (len(buff)<bstr.size): 
 #             print "Ende! ",len(buff),bstr.size
             break
@@ -510,6 +518,9 @@ def getLineOfBestFit(points):
         ysq += (points[i][1])^2
     fun = lambda x: xsq*math.cos(x[0])^2 + ysq*math.sin(x[0])-x[1]^2 + 2(xsum*ysum*math.cos(x[0])*math.sin(x[0]) - x[1]*(xsum*math.cos(x[0]) + ysum*math.sin([0])))
     return minimize(fun, [0])
+
+def handler(signum, frame):
+    raise IOError("Abbruch")
 
 if __name__ == '__main__':
     main()                
