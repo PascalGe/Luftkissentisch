@@ -153,6 +153,10 @@ def main():
                     DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
                     DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+30))
                     run = 0
+                    #TODO: Spaltenueberschriften run, slot, time, xVal, yVal
+#                     fd = open(datfile,"a")
+#                     fd.write()
+#                     fd.close
                     pygame.display.update()
                 elif BtnStart.collidepoint(pos):
                     if not isCnvsVisible:
@@ -231,10 +235,10 @@ def main():
                     pygame.display.update()
                     fd = open(datfile,"a")
                     for i in range(len(x1lst)):
-                        z = '%4i%4i%9.6f%6.1f%6.1f\n' % (run,1,t1lst[i],x1lst[i],y1lst[i])
+                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,1,t1lst[i],x1lst[i],y1lst[i])
                         fd.write(z)
                     for i in range(len(x2lst)):
-                        z = '%4i%4i%9.6f%6.1f%6.1f\n' % (run,2,t2lst[i],x2lst[i],y2lst[i])
+                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,2,t2lst[i],x2lst[i],y2lst[i])
                         fd.write(z)
                     fd.close()
                     alreadySaved = True
@@ -348,6 +352,20 @@ def main():
                     print("changed")
                     #TODO: Check selected trajectories for different directions --> Split
                     #TODO: Fits (both slots, before and after)
+                    points1 =[]
+                    points2 =[]
+                    for i in range(len(dispList1)):
+                        if not dispList1[i][2]: continue
+                        points1.append((x1lst[i],y1lst[i]))
+                    if not points1 == []:
+                        res = getLineOfBestFit(points1)
+                        print("angle 1:",res.x[0]*360/2*math.pi %360, res.x[1]) #90 - (res.x[0]*360/2*math.pi %180)
+                    for i in range(len(dispList2)):
+                        if not dispList2[i][2]: continue
+                        points2.append((x2lst[i],y2lst[i]))
+                    if not points2 == []:
+                        res = getLineOfBestFit(points2)
+                        print("angle 2:",res.x[0]*360/2*math.pi %360, res.x[1]) # 90 - (res.x[0]*360/2*math.pi %180)
                 changed = False
             if event.type == pygame.MOUSEMOTION:
                 if not lock:
@@ -511,16 +529,18 @@ def getLineOfBestFit(points):
     xsq = 0
     ysum = 0
     ysq = 0
+    prod = 0
     for i in range(len(points)):
         xsum += points[i][0]
-        xsq += (points[i][0])^2
+        xsq += (points[i][0])**2
         ysum += points[i][1]
-        ysq += (points[i][1])^2
-    fun = lambda x: xsq*math.cos(x[0])^2 + ysq*math.sin(x[0])-x[1]^2 + 2(xsum*ysum*math.cos(x[0])*math.sin(x[0]) - x[1]*(xsum*math.cos(x[0]) + ysum*math.sin([0])))
-    return minimize(fun, [0])
+        ysq += (points[i][1])**2
+        prod += (points[i][0]*points[i][1])
+    fun = lambda x: x[1]**2 + xsq*(math.cos(x[0]))**2 + ysq*(math.sin(x[0]))**2 + 2*(prod*math.cos(x[0])*math.sin(x[0])  - x[1]*(xsum*math.cos(x[0]) + ysum*math.sin(x[0])))
+    return minimize(fun, [0,0], args=(), method=None, jac=None, hess=None, hessp=None, bounds=None, constraints=(), tol=0.1, callback=None, options=None)
 
 def handler(signum, frame):
-    raise IOError("Abbruch")
+    raise IOError("TimeException")
 
 if __name__ == '__main__':
     main()                
