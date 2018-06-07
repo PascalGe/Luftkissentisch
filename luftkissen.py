@@ -12,13 +12,13 @@ import os.path
 import glob
 import platform
 import math
-from math import sqrt
+from math import sqrt, sin, cos
 import matplotlib
 import signal
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize
+from scipy.optimize import minimize, OptimizeResult
 
 # define input file
 device = "kugelstoss.log"
@@ -107,11 +107,9 @@ def main():
     frame = open(device,"rb")
     
     #define data container
-    global dispList1, dispList2, calcList1, calcList2
+    global dispList1, dispList2
     dispList1 = []
     dispList2 = []
-    calcList1 = []
-    calcList2 = []
     
     x1lst = [] # x-pos from 1 in mm
     y1lst = [] # y-pos from 1 in mm 
@@ -155,7 +153,7 @@ def main():
                     run = 0
                     #TODO: Spaltenueberschriften run, slot, time, xVal, yVal
 #                     fd = open(datfile,"a")
-#                     fd.write()
+#                     fd.write('%10s,%10s,%10s,%10s,%10s\n' % ("run","slot","time","x","y"))
 #                     fd.close
                     pygame.display.update()
                 elif BtnStart.collidepoint(pos):
@@ -357,15 +355,15 @@ def main():
                     for i in range(len(dispList1)):
                         if not dispList1[i][2]: continue
                         points1.append((x1lst[i],y1lst[i]))
-                    if not points1 == []:
-                        res = getLineOfBestFit(points1)
-                        print("angle 1:",res.x[0]*360/2*math.pi %360, res.x[1]) #90 - (res.x[0]*360/2*math.pi %180)
+                    res = getLineOfBestFit(points1)
+                    if res.success:
+                        print("angle 1:",res.x[0]*360/(2*math.pi) %360, res.x[1]) #90 - (res.x[0]*360/2*math.pi %180)
                     for i in range(len(dispList2)):
                         if not dispList2[i][2]: continue
                         points2.append((x2lst[i],y2lst[i]))
-                    if not points2 == []:
-                        res = getLineOfBestFit(points2)
-                        print("angle 2:",res.x[0]*360/2*math.pi %360, res.x[1]) # 90 - (res.x[0]*360/2*math.pi %180)
+                    res = getLineOfBestFit(points2)
+                    if res.success:
+                        print("angle 2:",res.x[0]*360/(2*math.pi) %360, res.x[1]) # 90 - (res.x[0]*360/2*math.pi %180)
                 changed = False
             if event.type == pygame.MOUSEMOTION:
                 if not lock:
@@ -525,19 +523,23 @@ def getCollitionIndex(posList, mousePos, getOnlyOne):
     return indexes
 
 def getLineOfBestFit(points):
-    xsum = 0
-    xsq = 0
-    ysum = 0
-    ysq = 0
-    prod = 0
-    for i in range(len(points)):
-        xsum += points[i][0]
-        xsq += (points[i][0])**2
-        ysum += points[i][1]
-        ysq += (points[i][1])**2
-        prod += (points[i][0]*points[i][1])
-    fun = lambda x: x[1]**2 + xsq*(math.cos(x[0]))**2 + ysq*(math.sin(x[0]))**2 + 2*(prod*math.cos(x[0])*math.sin(x[0])  - x[1]*(xsum*math.cos(x[0]) + ysum*math.sin(x[0])))
-    return minimize(fun, [0,0], args=(), method=None, jac=None, hess=None, hessp=None, bounds=None, constraints=(), tol=0.1, callback=None, options=None)
+    n = len(points)
+    if not n == 0:
+        delx = points[n-1][0] - points[0][0]
+        dely = points[n-1][1] - points[0][1]
+        if not delx == 0:
+            phi_start = math.atan2(dely, delx)
+            p_start = points[0][1] - dely/delx*points[0][0]
+            def fun(x):
+                y = 0
+                for i in range(n):
+                    y+= (points[i][0]*cos(x[0])+points[i][1]*sin(x[0]) - x[1])**2
+                return y
+            return minimize(fun, [phi_start,p_start], args=(), method='Nelder-Mead', jac=None, hess=None, hessp=None, bounds=None, constraints=(), tol=0.1, callback=None, options=None)
+    res = OptimizeResult()
+    res.success = False
+    return res   
+
 
 def handler(signum, frame):
     raise IOError("TimeException")
