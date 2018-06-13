@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Luftkissentisch
 
@@ -87,7 +88,7 @@ def main():
     state_color3 = cyan
     state_color4 = cyan
     run = 0
-    datfile = newfile("sg*.dat")
+    datfile = newfile("sg*.csv")
 
 
     #define font
@@ -124,6 +125,10 @@ def main():
     changed = False
     isCnvsVisible = True
     alreadySaved = False
+    firstTimeSaved = False
+    
+    label_Anlge1 = FONT.render("Angle 1: --.--°",1,black)
+    label_Anlge2 = FONT.render("Angle 2: --.--°",1,black)
   
     while running:
         for event in pygame.event.get():
@@ -145,16 +150,15 @@ def main():
                     # Create new file
                     pygame.draw.rect(DISPLAY, red , BtnFile)
                     pygame.display.update()
-                    datfile = newfile("sg*.dat")
+                    datfile = newfile("sg*.csv")
                     pygame.draw.rect(DISPLAY, cyan , BtnFile)
                     labelfile = FONT.render (datfile, 1, blue)
                     DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
                     DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+30))
                     run = 0
-                    #TODO: Spaltenueberschriften run, slot, time, xVal, yVal
-#                     fd = open(datfile,"a")
-#                     fd.write('%10s,%10s,%10s,%10s,%10s\n' % ("run","slot","time","x","y"))
-#                     fd.close
+                    fd = open(datfile,"a")
+                    fd.write('%3s,%4s,%4s,%1s,%1s\n' % ("run","slot","time","x","y"))
+                    fd.close
                     pygame.display.update()
                 elif BtnStart.collidepoint(pos):
                     if not isCnvsVisible:
@@ -182,9 +186,11 @@ def main():
                     x1lst = [] # x-pos from 1 in mm
                     y1lst = [] # y-pos from 1 in mm 
                     t1lst = [] # t from 1 in s
+                    dispList1 = []
                     x2lst = [] # x-pos from 2 in mm
                     y2lst = [] # y-pos from 2 in mm
                     t2lst = [] # t from 2 in s
+                    dispList2 = []
                     stime =  atime = 0
                     label5 = FONT.render ('Lauf '+str(run), 1, blue)
                     DISPLAY.blit(label5, (Btnx[2], Btny[2]+30))
@@ -205,7 +211,14 @@ def main():
                         x2d = int(BtnXlen+25+480./32768*x2)
                         y2d = int(480./32768*y2)
 #                         print "Pos: ",atime,x1,y1,x2,y2,x1d,y1d,x2d,y2d
-                        # TODO: Select relevant or deselect irrelevant
+                        # Start adaption here
+                        if not dispList1 == [] and not dispList2 == []:
+                            current1 = (x1*fmm,y1*fmm)
+                            current2 = (x2*fmm,y2*fmm)
+                            before1 = (x1lst[len(x1lst)-1], y1lst[len(y1lst)-1])
+                            if x1>0 and y1>0 and x2>0 and y2>0 and distance(current1, current2) < distance(current1, before1):
+                                x1, y1, x2, y2 = x2, y2, x1, y1
+                        # End adaption here
                         if (x1>1000 and y1>1000 and x1<32000 and y2<32000): 
                             pygame.draw.circle(DISPLAY, blue, (x1d, y1d), 2)
                             pygame.display.update()
@@ -228,6 +241,11 @@ def main():
                 elif BtnSave.collidepoint(pos):
                     if alreadySaved:
                         break
+                    if not firstTimeSaved:
+                        fd = open(datfile,"a")
+                        fd.write('%3s,%4s,%4s,%1s,%1s\n' % ("run","slot","time","x","y"))
+                        fd.close
+                        firstTimeSaved = True
                     # Save measurement
                     pygame.draw.rect(DISPLAY, red , BtnSave)
                     pygame.display.update()
@@ -348,8 +366,6 @@ def main():
                 selecting = True
                 if changed:
                     print("changed")
-                    #TODO: Check selected trajectories for different directions --> Split
-                    #TODO: Fits (both slots, before and after)
                     points1 =[]
                     points2 =[]
                     for i in range(len(dispList1)):
@@ -357,13 +373,21 @@ def main():
                         points1.append((x1lst[i],y1lst[i]))
                     res = getLineOfBestFit(points1)
                     if res.success:
-                        print("angle 1:",res.x[0]*360/(2*math.pi) %360, res.x[1]) #90 - (res.x[0]*360/2*math.pi %180)
+                        angle1 = res.x[0]*360/(2*math.pi) %360
+                        angleStr1 = "Angle 1: " + str(round(angle1, 2)) + "°"
+                        print("angle 1:",angle1, res.x[1]) #90 - (res.x[0]*360/2*math.pi %180)
+                    else: angleStr1 = "Angle 1: ---.--°" 
                     for i in range(len(dispList2)):
                         if not dispList2[i][2]: continue
                         points2.append((x2lst[i],y2lst[i]))
                     res = getLineOfBestFit(points2)
                     if res.success:
-                        print("angle 2:",res.x[0]*360/(2*math.pi) %360, res.x[1]) # 90 - (res.x[0]*360/2*math.pi %180)
+                        angle2 = res.x[0]*360/(2*math.pi) %360
+                        angleStr2 = "Angle 2: " + str(round(angle2, 2)) + "°"
+                        print("angle 2:",angle2, res.x[1]) # 90 - (res.x[0]*360/2*math.pi %180)
+                    else: angleStr2 = "Angle 2: ---.--°"
+                    label_Anlge1 = FONT.render(angleStr1,1,black)
+                    label_Anlge2 = FONT.render(angleStr2,1,black)
                 changed = False
             if event.type == pygame.MOUSEMOTION:
                 if not lock:
@@ -372,7 +396,6 @@ def main():
                 changed = markPositions(dispList1, pos, (blue, cyan), selecting) or changed
                 changed = markPositions(dispList2, pos, (red, cyan), selecting) or changed
     #lets draw the buttons and indicators
-    
             pygame.draw.rect(DISPLAY, state_color1 , BtnFile)
             pygame.draw.rect(DISPLAY, state_color2 , BtnStart)
             pygame.draw.rect(DISPLAY, state_color3 , BtnSave)
@@ -391,6 +414,12 @@ def main():
             labelv = FONT.render ("v(t)", 1, black)
             labelquit = FONT.render ("Quit", 1, white)
             labelfile = FONT.render (datfile, 1, blue)
+            if label_Anlge1.get_width() > label_Anlge2.get_width(): sizeLabelAnlge = label_Anlge1.get_width()
+            else: sizeLabelAnlge = label_Anlge2.get_width()
+            if label_Anlge1.get_height() > label_Anlge2.get_height(): sizeLabelAnlge = (sizeLabelAnlge, label_Anlge1.get_height())
+            else: sizeLabelAnlge = (sizeLabelAnlge, label_Anlge2.get_height())
+            posAngle1 = (Cnvs.x + Cnvs.width + 10, size[1] - 2*sizeLabelAnlge[1]-25)
+            posAngle2 = (Cnvs.x + Cnvs.width + 10, size[1] - sizeLabelAnlge[1]-20)
       
             DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
             DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+20))
@@ -402,7 +431,11 @@ def main():
             DISPLAY.blit(labelv, (Btnx[6], Btny[6]))
             DISPLAY.blit(labelquit, (Btnx[7], Btny[7]))
             if run>0: DISPLAY.blit(label5, (Btnx[2], Btny[2]+20))
-      
+            if isCnvsVisible:
+                re = pygame.Rect(posAngle1[0], posAngle1[1], posAngle2[0] + sizeLabelAnlge[0], posAngle2[1] + sizeLabelAnlge[1])
+                pygame.draw.rect(DISPLAY, grey, re)
+                DISPLAY.blit(label_Anlge1, posAngle1)
+                DISPLAY.blit(label_Anlge2, posAngle2)
             #pygame.draw.circle ( DISPLAY, green, ( 450, 250 ), 200, 5 )
             #pygame.draw.line ( DISPLAY, red, ( 200, 100 ), ( 500, 400 ), 5 )
       
@@ -473,7 +506,7 @@ def newfile(path):
         nr = str(int(last[3:7])+100001)[1:]
     else:
         nr="00001"
-    nextfile = "sg"+nr+".dat"
+    nextfile = "sg"+nr+".csv"
     return nextfile
 
 def markPositions(posList, mousePos, colors, selectingFlag):
@@ -540,6 +573,8 @@ def getLineOfBestFit(points):
     res.success = False
     return res   
 
+def distance(point1, point2):
+    return sqrt((point2[0]-point1[0])**2 +  (point2[1] - point1[1])**2)
 
 def handler(signum, frame):
     raise IOError("TimeException")
