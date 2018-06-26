@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize, OptimizeResult
 
 # define input file
+#TODO: Device festlegen! Rahmen automatisch erkennen?!
 device = "kugelstoss.log"
 # device = "/dev/input/by-id/usb-Multi_touch_Multi_touch_overlay_device_6F66FA721233-event-if01"
 
@@ -147,6 +148,7 @@ def main():
                 state_color1 = state_color2 = state_color3 =cyan
                 if BtnFile.collidepoint(pos):
                     alreadySaved = False
+                    firstTimeSaved = False
                     # Create new file
                     pygame.draw.rect(DISPLAY, red , BtnFile)
                     pygame.display.update()
@@ -156,9 +158,9 @@ def main():
                     DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
                     DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+30))
                     run = 0
-                    fd = open(datfile,"a")
-                    fd.write('%3s,%4s,%4s,%1s,%1s\n' % ("run","slot","time","x","y"))
-                    fd.close
+#                     fd = open(datfile,"a")
+#                     fd.write('%3s,%4s,%4s,%1s,%1s\n' % ("run","slot","time","x","y"))
+#                     fd.close
                     pygame.display.update()
                 elif BtnStart.collidepoint(pos):
                     if not isCnvsVisible:
@@ -206,19 +208,24 @@ def main():
                         if (etime == 0): break
                         if (stime == 0): stime = etime
                         atime = etime - stime
-                        x1d = int(BtnXlen+25+480./32768*x1)
-                        y1d = int(480./32768*y1)
-                        x2d = int(BtnXlen+25+480./32768*x2)
-                        y2d = int(480./32768*y2)
 #                         print "Pos: ",atime,x1,y1,x2,y2,x1d,y1d,x2d,y2d
-                        # Start adaption here
+                        # Condition for slot changing
                         if not dispList1 == [] and not dispList2 == []:
                             current1 = (x1*fmm,y1*fmm)
                             current2 = (x2*fmm,y2*fmm)
                             before1 = (x1lst[len(x1lst)-1], y1lst[len(y1lst)-1])
-                            if x1>0 and y1>0 and x2>0 and y2>0 and distance(current1, current2) < distance(current1, before1):
+                            before2 = (x2lst[len(x2lst)-1], y2lst[len(y2lst)-1])
+                            alreadyChanged = False
+                            if x1>0 and y1>0 and distance(current1, before1) > distance(current1, before2):
                                 x1, y1, x2, y2 = x2, y2, x1, y1
-                        # End adaption here
+                                alreadyChanged = True
+                            if not alreadyChanged and x2>0 and y2>0 and distance(current2, before2) > distance(current2, before1):
+                                x1, y1, x2, y2 = x2, y2, x1, y1
+                        # Perparation for Drawing an storing data
+                        x1d = int(BtnXlen+25+480./32768*x1)
+                        y1d = int(480./32768*y1)
+                        x2d = int(BtnXlen+25+480./32768*x2)
+                        y2d = int(480./32768*y2)
                         if (x1>1000 and y1>1000 and x1<32000 and y2<32000): 
                             pygame.draw.circle(DISPLAY, blue, (x1d, y1d), 2)
                             pygame.display.update()
