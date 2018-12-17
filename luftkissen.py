@@ -133,6 +133,10 @@ def main():
     x2lst = [] # x-pos from 2 in mm
     y2lst = [] # y-pos from 2 in mm
     t2lst = [] # t from 2 in s
+    tl1 = [] # t for velocities in 1 
+    vl1 = [] # v from 1 in mm/s
+    tl2 = [] # t for velocities in 2
+    vl2 = [] # v from 2 in mm/s
 
     running = True
     lock = False
@@ -254,7 +258,21 @@ def main():
                             y2lst.append(y2*fmm)
                             t2lst.append(1e-6*atime)
                             dispList2.append((x2d, y2d, False))
-                    # hier geht es dann weiter: Koordinaten anzeigen, evtl. ok Button
+                    # Geschwindigkeit berechnen
+                    tl1 = []
+                    vl1 = []
+                    for i in range(len(x1lst)-2):
+                        dll1 = sqrt((x1lst[i+1]-x1lst[i])**2+(y1lst[i+1]-y1lst[i])**2)
+                        dlr1 = sqrt((x1lst[i+2]-x1lst[i+1])**2+(y1lst[i+2]-y1lst[i+1])**2)
+                        tl1.append(t1lst[i+1])
+                        vl1.append((dll1+dlr1)/(t1lst[i+2]-t1lst[i]))
+                    tl2 = []
+                    vl2 = []
+                    for i in range(len(x2lst)-2):
+                        dll2 = sqrt((x2lst[i+1]-x2lst[i])**2+(y2lst[i+1]-y2lst[i])**2)
+                        dlr2 = sqrt((x2lst[i+2]-x2lst[i+1])**2+(y2lst[i+2]-y2lst[i+1])**2)
+                        tl2.append(t2lst[i+1])
+                        vl2.append((dll2+dlr2)/(t2lst[i+2]-t2lst[i]))
                     # lfd. Nr anzeigen, Koordinaten abspeichern
                     state_color2 = cyan
                     pygame.display.update()
@@ -264,19 +282,25 @@ def main():
                         break
                     if not firstTimeSaved:
                         fd = open(datfile,"a")
-                        fd.write('%3s,%4s,%4s,%1s,%1s\n' % ("run","slot","time","x","y"))
+                        fd.write('%3s,%4s,%4s,%1s,%1s\n' % ("run","slot","time","x","y","v"))
                         fd.close
                         firstTimeSaved = True
                     # Save measurement
                     pygame.draw.rect(DISPLAY, red , BtnSave)
                     pygame.display.update()
                     fd = open(datfile,"a")
-                    for i in range(len(x1lst)):
-                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,1,t1lst[i],x1lst[i],y1lst[i])
+                    if not t1lst == []:
+                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,1,t1lst[1],x1lst[1],y1lst[1])
                         fd.write(z)
-                    for i in range(len(x2lst)):
-                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,2,t2lst[i],x2lst[i],y2lst[i])
+                        for i in range(len(x1lst)[1:]):
+                            z = '%4i,%4i,%9.6f,%6.1f,%6.1f,%6.1f\n' % (run,1,t1lst[i],x1lst[i],y1lst[i],vl1[i])
+                            fd.write(z)
+                    if not t2lst == []:
+                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,2,t2lst[1],x2lst[1],y2lst[1])
                         fd.write(z)
+                        for i in range(len(x2lst)[1:]):
+                            z = '%4i,%4i,%9.6f,%6.1f,%6.1f,%6.1f\n' % (run,2,t2lst[i],x2lst[i],y2lst[i],vl2[i])
+                            fd.write(z)
                     fd.close()
                     alreadySaved = True
                     pygame.draw.rect(DISPLAY, state_color3 , BtnSave)
@@ -333,20 +357,6 @@ def main():
                     isCnvsVisible = False
                     # Show velocity
                     fig = plt.figure(figsize=[11.5, 8],dpi=60,)
-                    tl1 = []
-                    vl1 = []
-                    for i in range(len(x1lst)-2):
-                        dll1 = sqrt((x1lst[i+1]-x1lst[i])**2+(y1lst[i+1]-y1lst[i])**2)
-                        dlr1 = sqrt((x1lst[i+2]-x1lst[i+1])**2+(y1lst[i+2]-y1lst[i+1])**2)
-                        tl1.append(t1lst[i+1])
-                        vl1.append((dll1+dlr1)/(t1lst[i+2]-t1lst[i]))
-                    tl2 = []
-                    vl2 = []
-                    for i in range(len(x2lst)-2):
-                        dll2 = sqrt((x2lst[i+1]-x2lst[i])**2+(y2lst[i+1]-y2lst[i])**2)
-                        dlr2 = sqrt((x2lst[i+2]-x2lst[i+1])**2+(y2lst[i+2]-y2lst[i+1])**2)
-                        tl2.append(t2lst[i+1])
-                        vl2.append((dll2+dlr2)/(t2lst[i+2]-t2lst[i]))
                     plt.plot(tl1,vl1,'.',label='v1(t)')
                     plt.plot(tl2,vl2,'.',label='v2(t)')
                     plt.xlabel('t/s')
