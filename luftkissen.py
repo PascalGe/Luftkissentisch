@@ -282,7 +282,7 @@ def main():
                         break
                     if not firstTimeSaved:
                         fd = open(datfile,"a")
-                        fd.write('%3s,%4s,%4s,%1s,%1s\n' % ("run","slot","time","x","y","v"))
+                        fd.write('%3s,%4s,%4s,%1s,%1s,%1s\n' % ("run","slot","time","x","y","v"))
                         fd.close
                         firstTimeSaved = True
                     # Save measurement
@@ -290,17 +290,21 @@ def main():
                     pygame.display.update()
                     fd = open(datfile,"a")
                     if not t1lst == []:
-                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,1,t1lst[1],x1lst[1],y1lst[1])
+                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,1,t1lst[0],x1lst[0],y1lst[0])
                         fd.write(z)
-                        for i in range(len(x1lst)[1:]):
-                            z = '%4i,%4i,%9.6f,%6.1f,%6.1f,%6.1f\n' % (run,1,t1lst[i],x1lst[i],y1lst[i],vl1[i])
+                        for i in range(1,len(x1lst)-1):
+                            z = '%4i,%4i,%9.6f,%6.1f,%6.1f,%6.1f\n' % (run,1,t1lst[i],x1lst[i],y1lst[i],vl1[i-1])
                             fd.write(z)
+                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,1,t1lst[len(x1lst)-1],x1lst[len(x1lst)-1],y1lst[len(x1lst)-1])
+                        fd.write(z)
                     if not t2lst == []:
                         z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,2,t2lst[1],x2lst[1],y2lst[1])
                         fd.write(z)
-                        for i in range(len(x2lst)[1:]):
-                            z = '%4i,%4i,%9.6f,%6.1f,%6.1f,%6.1f\n' % (run,2,t2lst[i],x2lst[i],y2lst[i],vl2[i])
+                        for i in range(1,len(x2lst)-1):
+                            z = '%4i,%4i,%9.6f,%6.1f,%6.1f,%6.1f\n' % (run,2,t2lst[i],x2lst[i],y2lst[i],vl2[i-1])
                             fd.write(z)
+                        z = '%4i,%4i,%9.6f,%6.1f,%6.1f\n' % (run,2,t2lst[len(x2lst)-1],x2lst[len(x2lst)-1],y2lst[len(x2lst)-1])
+                        fd.write(z)
                     fd.close()
                     alreadySaved = True
                     pygame.draw.rect(DISPLAY, state_color3 , BtnSave)
