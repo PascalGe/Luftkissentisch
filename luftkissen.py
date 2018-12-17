@@ -16,15 +16,29 @@ import math
 from math import sqrt, sin, cos
 import matplotlib
 import signal
+from numpy.core.defchararray import startswith
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize, OptimizeResult
 
 # define input file
-#TODO: Device festlegen! Rahmen automatisch erkennen?!
+# TODO: In final version remove comment
+
+# path = os.listdir("/dev/input/by-id/")
+path = os.listdir("D:\Development") 
+
+pvar = -1
+for i in range(len(path)):
+    if (path[i].startswith("usb-Multi_touch_Multi_touch_overlay_device")): #usb-Multi_touch_Multi_touch_overlay_device
+        pvar = i
+        break
+if (pvar == -1):
+    print("No device connected.")
+    quit()
+
 device = "kugelstoss.log"
-# device = "/dev/input/by-id/usb-Multi_touch_Multi_touch_overlay_device_6F66FA721233-event-if01"
+# device = "/dev/input/by-id/" + path[pvar]
 
 # pocessor architecture
 # if (platform.machine() == "x86_64" or platform.machine() == "AMD64"):
@@ -380,7 +394,7 @@ def main():
                         points1.append((x1lst[i],y1lst[i]))
                     res = getLineOfBestFit(points1)
                     if res.success:
-                        angle1 = res.x[0]*360/(2*math.pi) %360
+                        angle1 = res.x[0]*360/(2*math.pi) %180
                         angleStr1 = "Angle 1: " + str(round(angle1, 2)) + "°"
                         print("angle 1:",angle1, res.x[1]) #90 - (res.x[0]*360/2*math.pi %180)
                     else: angleStr1 = "Angle 1: ---.--°" 
@@ -389,7 +403,7 @@ def main():
                         points2.append((x2lst[i],y2lst[i]))
                     res = getLineOfBestFit(points2)
                     if res.success:
-                        angle2 = res.x[0]*360/(2*math.pi) %360
+                        angle2 = res.x[0]*360/(2*math.pi) %180
                         angleStr2 = "Angle 2: " + str(round(angle2, 2)) + "°"
                         print("angle 2:",angle2, res.x[1]) # 90 - (res.x[0]*360/2*math.pi %180)
                     else: angleStr2 = "Angle 2: ---.--°"
