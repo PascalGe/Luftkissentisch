@@ -23,10 +23,8 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize, OptimizeResult
 
 # define input file
-# TODO: In final version remove comment
 
-# path = os.listdir("/dev/input/by-id/")
-path = os.listdir("D:\Development") 
+path = os.listdir("/dev/input/by-id/")
 
 pvar = -1
 for i in range(len(path)):
@@ -37,11 +35,9 @@ if (pvar == -1):
     print("No device connected.")
     quit()
 
-device = "kugelstoss.log"
-# device = "/dev/input/by-id/" + path[pvar]
+device = "/dev/input/by-id/" + path[pvar]
 
 # pocessor architecture
-# if (platform.machine() == "x86_64" or platform.machine() == "AMD64"):
 if (platform.architecture()[0] == "64bit"):
     bstr = struct.Struct("I 4x I 4x 2H i")
     print("64 bit architecture")
@@ -84,7 +80,6 @@ def main():
                    )
 
     pygame.init()
-#     DISPLAY = pygame.display.set_mode(size,NOFRAME)
     DISPLAY = pygame.display.set_mode(size)
     Scrn = pygame.Rect(Btnx[0],0,width,height)
     Cnvs = pygame.Rect(BtnXlen+25, 5, height-10,  height-10)
@@ -115,10 +110,7 @@ def main():
     pygame.draw.rect(DISPLAY, grey , Scrn)
     #drawing area Canvas
     pygame.draw.rect(DISPLAY, black , Cnvs)
-    #shape = pygame.surface.Surface ( ( width, height ) )
   
-    #handler.loadFromFile ( "./BtnNorm.png", "Btn" )
-    #handler.loadFromFile ( "./BtnPressed.png", "Btn" )
     devopen()
     frame = open(device,"rb")
     
@@ -176,9 +168,6 @@ def main():
                     DISPLAY.blit(label_File, (Btnx[1], Btny[1]))
                     DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+30))
                     run = 0
-#                     fd = open(datfile,"a")
-#                     fd.write('%3s,%4s,%4s,%1s,%1s\n' % ("run","slot","time","x","y"))
-#                     fd.close
                     pygame.display.update()
                 elif BtnStart.collidepoint(pos):
                     if not isCnvsVisible:
@@ -226,7 +215,6 @@ def main():
                         if (etime == 0): break
                         if (stime == 0): stime = etime
                         atime = etime - stime
-#                         print "Pos: ",atime,x1,y1,x2,y2,x1d,y1d,x2d,y2d
                         # Condition for slot changing
                         if not dispList1 == [] and not dispList2 == []:
                             current1 = (x1*fmm,y1*fmm)
@@ -353,7 +341,6 @@ def main():
                     renderer = canvas.get_renderer()
                     raw_data = renderer.tostring_rgb()
                     size = canvas.get_width_height()
-
                     surf = pygame.image.fromstring(raw_data, size, "RGB")
                     DISPLAY.blit(surf, (BtnXlen+10,0))
                     pygame.display.flip()
@@ -383,16 +370,13 @@ def main():
                     if not isCnvsVisible:
                         break
                     # Mark points on Cnvs
-#                     print("Cnvs", pos)
                     lock = True
                     collisionAt = getCollitionIndex(dispList1, pos, True)
                     if not collisionAt == []:
-#                         print("List 1 hit")
                         selecting = not dispList1[collisionAt][2]
                         break
                     collisionAt = getCollitionIndex(dispList2, pos, True)
                     if not collisionAt == []:
-#                         print("List 2 hit")
                         selecting = not dispList2[collisionAt][2]
             if event.type == pygame.MOUSEBUTTONUP:
                 if not isCnvsVisible:
@@ -439,11 +423,9 @@ def main():
             pygame.draw.rect(DISPLAY, state_color4 , BtnV)
             pygame.draw.rect(DISPLAY, red , BtnQuit)
      
-#             label_File = FONT.render ("File", 1, black)
             label_Start = FONT.render ("Start", 1, black)
             label_Save = FONT.render ("Save", 1, black)
         
-#             labelp = FONT.render ("Plot", 1, black)
             labelxy = FONT.render ("x(t), y(t)", 1, black)
             labels = FONT.render ("s(t)", 1, black)
             labelv = FONT.render ("v(t)", 1, black)
@@ -460,7 +442,6 @@ def main():
             DISPLAY.blit(labelfile, (Btnx[1], Btny[1]+20))
             DISPLAY.blit(label_Start, (Btnx[2], Btny[2]))
             DISPLAY.blit(label_Save, (Btnx[3], Btny[3]))
-#             DISPLAY.blit(labelp, (Btnx[4], Btny[4]-20))
             DISPLAY.blit(labelxy,(Btnx[4], Btny[4]))
             DISPLAY.blit(labels, (Btnx[5], Btny[5]))
             DISPLAY.blit(labelv, (Btnx[6], Btny[6]))
@@ -471,8 +452,6 @@ def main():
                 pygame.draw.rect(DISPLAY, grey, re)
                 DISPLAY.blit(label_Anlge1, posAngle1)
                 DISPLAY.blit(label_Anlge2, posAngle2)
-            #pygame.draw.circle ( DISPLAY, green, ( 450, 250 ), 200, 5 )
-            #pygame.draw.line ( DISPLAY, red, ( 200, 100 ), ( 500, 400 ), 5 )
       
         #refresh screen        
         pygame.display.update()
@@ -500,18 +479,14 @@ def kugelpos():
     y1 = 0
     y2 = 0
     while True:
-        # TODO: In final version remove comment
-#         signal.signal(signal.SIGALRM, handler)
-#         signal.alarm(5)
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(5)
         buff = frame.read(bstr.size)
-#         signal.alarm(0)
+        signal.alarm(0)
         if (len(buff)<bstr.size): 
-#             print "Ende! ",len(buff),bstr.size
             break
         sec, usec, syn, mtk, val = bstr.unpack(buff)
         time = 1e6*sec+usec
-#         if (mtk == 0x30): print "major: ",401.*val/32768.
-#         if (mtk == 0x31): print "minor: ",401.*val/32768.
         if (mtk == 0 and val == 0): break
         if (mtk == 0x2f) : slot = val
         if (mtk == 0x35) :
@@ -525,7 +500,6 @@ def kugelpos():
 def devopen():  # Device open?
     if not os.path.exists(device):
         hid = False
-#    print "trying to open ",device
         while not hid:
             hid = os.path.exists(device)
         while True:
@@ -575,7 +549,6 @@ def getCollitionIndex(posList, mousePos, getOnlyOne):
     for i in range(len(posList)):
                     if (posList[i][0]-collisionTol) < (mousePos[0]) and (posList[i][0]+collisionTol) > (mousePos[0]):
                         if (posList[i][1]-collisionTol) < (mousePos[1]) and (posList[i][1]+collisionTol) > (mousePos[1]):
-#                             print("check at ball index", i)
                             indexes.append(i)
     if not indexes == [] and getOnlyOne:
         index = 0
@@ -583,7 +556,6 @@ def getCollitionIndex(posList, mousePos, getOnlyOne):
         for i in range(n):
             index += indexes[i]
         average = math.trunc(index/n)
-#         print("average", average)
         for i in range(n):
             if average == indexes[i]:
                 return average
