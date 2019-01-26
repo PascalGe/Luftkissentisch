@@ -4,11 +4,9 @@
 # Luftkissentisch
 
 import pygame
-from pygame.locals import *
 import time
 import sys
 import struct
-import ctypes
 import os.path
 import glob
 import platform
@@ -16,7 +14,6 @@ import math
 from math import sqrt, sin, cos
 import matplotlib
 import signal
-from numpy.core.defchararray import startswith
 matplotlib.use('Agg')
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
@@ -201,7 +198,7 @@ def main():
                     t2lst = [] # t from 2 in s
                     dispList2 = []
                     stime =  atime = 0
-                    label5 = FONT.render ('Lauf '+str(run), 1, blue)
+                    label5 = FONT.render ('Run '+str(run), 1, blue)
                     DISPLAY.blit(label5, (Btnx[2], Btny[2]+30))
                     pygame.display.update()
                     frame.close()
